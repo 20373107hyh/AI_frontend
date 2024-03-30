@@ -89,7 +89,7 @@ export default {
   watch: {
     $route: {
       handler: function(route) {
-        this.redirect = route.query && route.query.redirect
+        this.redirect = '/'
       },
       immediate: true
     }

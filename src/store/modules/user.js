@@ -33,9 +33,20 @@ const actions = {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
+        
+        location.reload()
         const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
+        commit('SET_TOKEN', data.session_id)
+        setToken(data.session_id)
+        document.cookies = data.session_id
+        localStorage.setItem('username', data.username)
+        localStorage.setItem('user_id', data.user_id)
+        localStorage.setItem('realname', data.realname)
+        localStorage.setItem('email', data.email)
+        localStorage.setItem('phone', data.phone)
+        localStorage.setItem('status', data.status)
+        console.log(data.status)
+        console.log(localStorage.getItem('status'))
         resolve()
       }).catch(error => {
         reject(error)
