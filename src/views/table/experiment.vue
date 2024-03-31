@@ -1,8 +1,11 @@
 <template>
     <div class="detail-container" v-if="loading===false">
-        <el-button @click="ReturnToCourseInfo()">返回 </el-button>
-        <timer :startTime="time" @time-remaining="handleTimeRemaining"></timer>
-        <iframe :src="url" style="width:100%; height:500px;"></iframe>
+        <div class="top">
+            <el-button @click="ReturnToCourseInfo()" style="width:100px; height: 40px; position:fixed; left:70px">结束实验 </el-button>
+            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+            <timer :startTime="time" @time-remaining="handleTimeRemaining" style="position:fixed; right:80px"></timer>
+        </div>
+        <iframe :src="url" style="width:100%; height:85%; position: fixed; top:15% ;left:0%"></iframe>
     </div>
     <div class="detail-container" v-else>
         LOADING
@@ -41,7 +44,8 @@ export default{
                 res => {
                     console.log(res)
                     this.experiment_info = res.data.data
-                    this.url = res.data.data.experiment_url
+                    // this.url = res.data.data.experiment_url
+                    this.url = 'http://39.105.203.95:8888/lab'
                     this.time = res.data.data.experiment_countdown
                     this.loading = false
                 }
@@ -82,6 +86,11 @@ export default{
 
 
 <style lang="scss" scoped>
+.top{
+    display: flex;
+    width:100%;
+}
+
 .detail {
   &-container {
     margin: 30px;

@@ -1,7 +1,6 @@
 <template>
     <div class="detail-container">
         <el-button @click="ReturnToCourseInfo()">返回 </el-button>
-        <timer :startTime="time" @time-remaining="handleTimeRemaining"></timer>
       <div class="detail-text">课程名称：{{ course_info.course_name }}</div>
       <div class="detail-text">课程难度：{{ course_info.course_difficulty }}</div>
       <div class="detail-text">课程章节：{{ course_info.course_chapter }}</div>
