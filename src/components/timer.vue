@@ -18,8 +18,8 @@
     watch: {
         // 监听startTime的变化，开始倒计时
         startTime: function(val) {
-        this.time = val;
-        this.startTimer();
+          this.time = val;
+          this.startTimer();
         },
     },
     computed: {
@@ -48,11 +48,16 @@
       stopTimer() {
         clearInterval(this.timer);
         this.timer = null;
+        let alert = "剩余" + this.time + "秒"
+        window.alert(alert)
         this.$emit('time-remaining', this.time); // 发送剩余时间到父组件
       },
     },
     beforeDestroy() {
       this.stopTimer();
     },
+    created(){
+      this.startTimer()
+    }
   };
   </script>

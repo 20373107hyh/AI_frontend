@@ -1,50 +1,6 @@
 <template>
   <div class="app-container">
     <el-button @click="CreateCourseOpen()"> 创建新课程 </el-button>
-    <el-button @click="DeleteCourseOpen()"> 删除课程 </el-button>
-
-    
-    <el-dialog title="添加新镜像" :visible.sync="commitDialogVisible" width="40%" center>
-      <el-form ref="dataForm" :model="temp" label-position="left" label-width="100px" style="width: 400px; margin-left: 50px">
-        <el-form-item label="容器名称" prop="com">
-          <el-select v-model="container_name" placeholder="请选择" style="width: 300px; margin-left: 20px">
-            <el-option
-              v-for="item in list"
-              :key="item.name"
-              :label="item.name"
-              :value="item.name">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="新镜像名称" prop="com">
-          <el-input v-model="new_image_name" clearable style="width: 300px; margin-left: 20px"/>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="commitDialogVisible = false"> 取消 </el-button>
-        <el-button type="primary" @click="handleCommit()"> 提交 </el-button>
-      </div>
-    </el-dialog>
-
-    <el-dialog title="删除镜像" :visible.sync="deleteImageDialogVisible" width="40%" center>
-      <el-form ref="dataForm" :model="temp" label-position="left" label-width="100px" style="width: 400px; margin-left: 50px">
-        <el-form-item label="镜像名称" prop="com">
-          <el-select v-model="temp.image_name" placeholder="请选择" style="width: 300px; margin-left: 20px">
-            <el-option
-              v-for="item in image_list"
-              :key="item"
-              :label="item"
-              :value="item">
-            </el-option>
-          </el-select>
-        </el-form-item>
-
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="deleteImageDialogVisible = false"> 取消 </el-button>
-        <el-button type="primary" @click="handleDeleteImage()"> 提交 </el-button>
-      </div>
-    </el-dialog>
 
     <el-table
       v-loading="listLoading"
@@ -62,6 +18,11 @@
       <el-table-column label="实验名称">
         <template slot-scope="scope">
           {{ scope.row.course_name }}
+        </template>
+      </el-table-column>
+      <el-table-column label="实验创建人">
+        <template slot-scope="scope">
+          {{ scope.row.author_name }}
         </template>
       </el-table-column>
       <el-table-column label="实验章节">

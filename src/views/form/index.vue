@@ -59,8 +59,10 @@ export default {
   },
   methods: {
     onSubmit() {
+      let author_id = localStorage.getItem("user_id")
       const formData = new FormData()
       formData.append('course_name', this.form.course_name)
+      formData.append('author_id', author_id)
       formData.append('use_image_name', this.form.use_image_name)
       formData.append('course_limit_time', this.form.course_limit_time)
       formData.append('course_difficulty', this.form.course_difficulty)

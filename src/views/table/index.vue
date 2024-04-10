@@ -82,14 +82,18 @@
           {{ scope.row.id }}
         </template>
       </el-table-column>
-      <el-table-column label="Name">
+      <el-table-column label="创建者">
+        <template slot-scope="scope">
+          {{ scope.row.author_name }}
+        </template>
+      </el-table-column>
+      <el-table-column label="容器名">
         <template slot-scope="scope">
           {{ scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column align="center" prop="created_at" label="Display_time" width="200">
+      <el-table-column align="center" prop="created_at" label="操作" width="200">
         <template slot-scope="scope">
-          <i class="el-icon-time" />
           <span>
             <el-button type="primary" @click="handleEdit(scope.row.url)"> 进入 </el-button>
             <el-button type="primary" @click="handleDelete(scope.row.name)"> 删除 </el-button>
@@ -126,6 +130,7 @@ export default {
       },
       image_list: [],
       container_name: '',
+      author_id:'',
       new_image_name: '',
       new_container_name: '',
     }
@@ -142,6 +147,7 @@ export default {
         }).then(
           res => {
             this.list = res.data.data
+            console.log(res.data.data)
             this.listLoading = false
           }
         )
@@ -215,9 +221,11 @@ export default {
     },
     handleCreate(){
       this.listLoading = true
+      let author_id = localStorage.getItem('user_id')
       const formData = new FormData()
       formData.append('image_name', this.temp.image_name)
       formData.append('container_name', this.new_container_name)
+      formData.append('author_id', author_id)
       this.$axios({
           method: 'post',
           url: '/teacher/add_new_container/',

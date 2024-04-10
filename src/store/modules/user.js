@@ -36,6 +36,7 @@ const actions = {
         
         location.reload()
         const { data } = response
+        console.log(data)
         commit('SET_TOKEN', data.session_id)
         setToken(data.session_id)
         document.cookies = data.session_id
@@ -82,6 +83,7 @@ const actions = {
         removeToken() // must remove  token  first
         resetRouter()
         commit('RESET_STATE')
+        localStorage.clear()
         resolve()
       }).catch(error => {
         reject(error)

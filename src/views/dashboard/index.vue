@@ -9,10 +9,18 @@ import { mapGetters } from 'vuex'
 
 export default {
   name: 'Dashboard',
-  computed: {
-    ...mapGetters([
-      'realname'
-    ])
+  data(){
+    return{
+      realname: '',
+    }
+  },
+  methods:{
+    getInfo(){
+      this.realname = localStorage.getItem('realname');
+    }
+  },
+  created(){
+    this.getInfo()
   }
 }
 </script>
