@@ -61,7 +61,7 @@ export default{
                     console.log(res)
                     this.experiment_info = res.data.data
                     // this.url = res.data.data.experiment_url
-                    this.url = 'http://39.105.203.95:8888/lab'
+                    this.url = 'http://39.105.203.95:8888/lab?token=123456789'
                     this.time = res.data.data.experiment_countdown
                     this.loading = false
                 }

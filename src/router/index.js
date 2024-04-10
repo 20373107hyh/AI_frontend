@@ -30,7 +30,7 @@ import Layout from '@/layout'
  * a base page that does not have permission requirements
  * all roles can be accessed
  */
-export const constantRoutes = [
+export const teacherRoutes = [
   {
     path: '/login',
     component: () => import('@/views/login/index'),
@@ -105,15 +105,86 @@ export const constantRoutes = [
   { path: '*', redirect: '/404', hidden: true }
 ]
 
+
+export const studentRoutes = [
+  {
+    path: '/login',
+    component: () => import('@/views/login/index'),
+    hidden: true
+  },
+
+  {
+    path: '/404',
+    component: () => import('@/views/404'),
+    hidden: true
+  },
+
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/dashboard',
+    children: [{
+      path: 'dashboard',
+      name: 'Dashboard',
+      component: () => import('@/views/dashboard/index'),
+      meta: { title: 'Dashboard', icon: 'dashboard' }
+    }]
+  },
+  {
+    path: '/experiment_list',
+    component: Layout,
+    redirect: '/experiment_list/experiment_list',
+    name: '实验列表',
+    meta: { title: '实验列表', icon: 'form' },
+    children: [
+      {
+        path: 'experiment_list',
+        name: 'Form',
+        component: () => import('@/views/student/experiment_list'),
+        meta: { title: '实验列表', icon: 'form' }
+      },
+      {
+        path: 'experiment_detail',
+        name: 'Form',
+        component: () => import('@/views/student/experiment_detail'),
+      }
+    ]
+  },
+  
+
+  {
+    path: '/experiment',
+    name: 'Experiment',
+    component: () => import('@/views/table/experiment')
+  },
+
+
+
+  // 404 page must be placed at the end !!!
+  { path: '*', redirect: '/404', hidden: true }
+]
+
+
+const getRoutesByUserType = (router) => {
+  const usertype = localStorage.getItem('status')
+  console.log(usertype)
+  if (usertype === 'teacher') {
+    return teacherRoutes
+  }
+  else {
+    return studentRoutes
+  }
+}
+
+
 const createRouter = () => new Router({
   // mode: 'history', // require service support
   scrollBehavior: () => ({ y: 0 }),
-  routes: constantRoutes
+  routes: getRoutesByUserType()
 })
 
 const router = createRouter()
 
-// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
   const newRouter = createRouter()
   router.matcher = newRouter.matcher // reset router
