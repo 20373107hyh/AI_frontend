@@ -140,7 +140,15 @@ export default{
                 this.confirmQuit()
                 }
             }, 1000);
-            },
+        },
+        beforeunload(event) {
+            event.preventDefault();
+            event.returnValue = '';
+        },
+        handleWindowUnload() {
+            window.alert("are you sure to quit")
+            this.confirmSave()
+        },
     },
     computed: {
         formattedTime() {
@@ -153,11 +161,17 @@ export default{
     },
     async created(){
         this.getData();
+        window.addEventListener('beforeunload', this.beforeUnload);
         this.startCountdown();
     },
+    destroyed(){
+        window.removeEventListener('beforeunload', this.beforeUnload);
+    },
+    mounted() {
+        window.addEventListener('beforeunload', this.beforeUnload);
+    },
     beforeDestroy() {
-        this.attemptClose();
-        return !this.showModal;
+        window.removeEventListener('beforeunload', this.beforeUnload);
     },
 }
 </script>

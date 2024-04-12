@@ -79,6 +79,11 @@ export const teacherRoutes = [
         name: 'Course_detail',
         component: () => import('@/views/table/course_detail')
       },
+      {
+        path: 'container_detail',
+        name: 'Container_detail',
+        component: () => import('@/views/table/container_detail')
+      },
     ]
   },
   {

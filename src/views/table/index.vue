@@ -95,7 +95,7 @@
       <el-table-column align="center" prop="created_at" label="操作" width="200">
         <template slot-scope="scope">
           <span>
-            <el-button type="primary" @click="handleEdit(scope.row.url)"> 进入 </el-button>
+            <el-button type="primary" @click="handleEdit(scope.row)"> 进入 </el-button>
             <el-button type="primary" @click="handleDelete(scope.row.name)"> 删除 </el-button>
           </span>
         </template>
@@ -305,9 +305,15 @@ export default {
         this.deleteImageDialogVisible = false
         this.temp.image_name = ''
     },
-    handleEdit(url){
-      console.log(url)
-      window.open(url, '_blank');
+    handleEdit(row){
+      // console.log(url)
+      // window.open(url, '_blank');
+      this.$router.push({
+        path:'/manage/container_detail',
+        query:{
+          container_id: row.id,
+        }
+      })
     }
   }
 }

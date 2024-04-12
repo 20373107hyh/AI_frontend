@@ -1,0 +1,116 @@
+<template>
+  <div>
+    <form @submit.prevent="onSubmit">
+      <input type="file" multiple @change="onFileChange">
+      <button type="submit">Submit</button>
+    </form>
+    <ul v-if="uploaded_files.length > 0">
+      <li v-for="(file, index) in uploaded_files" :key="index">
+        {{ file }}
+        <button @click="onDelete(file)">Delete</button>
+      </li>
+    </ul>
+    <el-button type="primary" @click="handleEnter()"> 进入 </el-button>
+  </div>
+</template>
+  
+<script>
+export default {
+  data() {
+    return {
+      files: [], //正在上传的文件
+      uploaded_files:[], //已上传的文件
+      container_info: {},
+    };
+  },
+  methods: {
+    loadFiles(){
+      const formData = new FormData()
+      let user_id = localStorage.getItem('user_id')
+      let container_id = this.$route.query.container_id
+      formData.append('user_id', user_id)
+      formData.append('container_id', container_id)
+      this.$axios({
+        method: 'post',
+        url: '/teacher/load_files/',
+        data: formData,
+      }).then(res => {
+        console.log(res)
+        this.uploaded_files = res.data.data
+      })
+      this.files = []
+    },
+    onFileChange(e) {
+      this.files = [...e.target.files];
+      console.log(this.files)
+    },
+    onSubmit() {
+      const formData = new FormData();
+      let user_id = localStorage.getItem('user_id')
+      let container_id = this.$route.query.container_id
+      formData.append('user_id', user_id)
+      formData.append('container_id', container_id)
+      for (let i = 0; i < this.files.length; i++) {
+        let file = this.files[i];
+        formData.append('file[]', file);
+      }
+      this.$axios({
+          method: 'post',
+          url: '/teacher/upload_file/',
+          data: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }).then(response => {
+          console.log(response)
+          this.loadFiles()
+          this.files = []
+        })
+          .catch(error => console.log(error));
+
+    },
+    onDelete(file){
+      const formData = new FormData();
+      let user_id = localStorage.getItem('user_id')
+      let container_id = this.$route.query.container_id
+      formData.append('user_id', user_id)
+      formData.append('container_id', container_id)
+      formData.append('file_name', file)
+      console.log(file)
+      this.$axios({
+          method: 'post',
+          url: '/teacher/delete_file/',
+          data: formData,
+        }).then(response => {
+          console.log(response)
+          this.loadFiles()
+        })
+          .catch(error => console.log(error));
+    },
+    search_container(){
+      const formData = new FormData();
+      let container_id = this.$route.query.container_id
+      formData.append('container_id', container_id)
+      this.$axios({
+          method: 'post',
+          url: '/teacher/search_container/',
+          data: formData,
+        }).then(response => {
+          console.log(response)
+          this.container_info = response.data.data
+        })
+          .catch(error => console.log(error));
+    },
+    handleEnter(){
+      let url = this.container_info.container_url
+      console.log(url)
+      window.open(url, '_blank');
+    },
+  },
+  created(){
+      this.loadFiles()
+      this.search_container()
+  },
+}
+</script>
+  
