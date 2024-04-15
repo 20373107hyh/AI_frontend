@@ -1,5 +1,11 @@
 <template>
   <div>
+    <div>
+      <div class="detail-text">名称：{{ container_info.container_name}}</div>
+      <div class="detail-text">配置：{{ container_info.cpu_num }}核CPU, {{ container_info.mem_size }}G内存 </div>
+      <div class="detail-text">SSH端口: {{ container_info.ssh_port }}</div>
+      <div class="detail-text">HTTP端口: {{ container_info.http_port }}</div>
+    </div>
     <form @submit.prevent="onSubmit">
       <input type="file" multiple @change="onFileChange">
       <button type="submit">Submit</button>
@@ -114,3 +120,12 @@ export default {
 }
 </script>
   
+
+<style lang="scss" scoped>
+.detail {
+  &-text {
+    font-size: 30px;
+    line-height: 46px;
+  }
+}
+</style>

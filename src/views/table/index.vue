@@ -6,7 +6,7 @@
 
     <el-dialog title="添加新容器" :visible.sync="addDialogVisible" width="40%" center>
       <el-form ref="dataForm" :model="temp" label-position="left" label-width="100px" style="width: 400px; margin-left: 50px">
-        <el-form-item label="镜像名称" prop="com">
+        <el-form-item label="基础镜像" prop="com">
           <el-select v-model="temp.image_name" placeholder="请选择" style="width: 300px; margin-left: 20px">
             <el-option
               v-for="item in image_list"
@@ -18,6 +18,16 @@
         </el-form-item>
         <el-form-item label="新容器名称" prop="com">
           <el-input v-model="new_container_name" clearable style="width: 300px; margin-left: 20px"/>
+        </el-form-item>
+        <el-form-item label="配置" prop="com">
+          <el-select v-model="config" placeholder="请选择" style="width: 300px; margin-left: 20px">
+            <el-option
+              v-for="item in config_list"
+              :key="item"
+              :label="item"
+              :value="item">
+            </el-option>
+          </el-select>
         </el-form-item>
 
       </el-form>
@@ -133,6 +143,14 @@ export default {
       author_id:'',
       new_image_name: '',
       new_container_name: '',
+      config_list: [
+        '0.5核CPU 1G内存',
+        '1核CPU 2G内存',
+        '2核CPU 4G内存',
+        '4核CPU 8G内存',
+        '8核CPU 16G内存',
+      ],
+      config: '',
     }
   },
   created() {
@@ -226,6 +244,7 @@ export default {
       formData.append('image_name', this.temp.image_name)
       formData.append('container_name', this.new_container_name)
       formData.append('author_id', author_id)
+      formData.append('config', this.config)
       this.$axios({
           method: 'post',
           url: '/teacher/add_new_container/',
