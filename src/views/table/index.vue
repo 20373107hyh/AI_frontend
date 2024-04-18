@@ -210,9 +210,12 @@ export default {
     },
     handleDelete(container_name){
       this.listLoading = true
+      let author_id = localStorage.getItem('user_id')
       const formData = new FormData()
       formData.append('container_name', container_name)
+      formData.append('author_id', author_id)
       console.log(container_name)
+      console.log(author_id)
       this.$axios({
           method: 'post',
           url: '/teacher/delete_container/',

@@ -30,6 +30,11 @@
           {{ scope.row.course_chapter }}
         </template>
       </el-table-column>
+      <el-table-column label="章节名称">
+        <template slot-scope="scope">
+          {{ scope.row.chapter_name }}
+        </template>
+      </el-table-column>
       <el-table-column label="难度">
         <template slot-scope="scope">
           {{ scope.row.course_difficulty }}
@@ -42,7 +47,6 @@
       </el-table-column>
       <el-table-column align="center" label="操作" width="200">
         <template slot-scope="scope">
-          <i class="el-icon-time" />
           <span>
             <el-button type="primary" @click="handleEnter(scope.row)"> 进入 </el-button>
             <el-button type="primary" @click="handleDelete(scope.row.course_id)"> 删除 </el-button>

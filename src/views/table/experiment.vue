@@ -8,19 +8,21 @@
             </div>
         </div>
         <iframe :src="url" style="width:100%; height:85%; position: fixed; top:15% ;left:0%"></iframe>
-        <div v-if="showModal">
-            <p>你要保存实验吗?</p>
-            <button @click="confirmSave">保存</button>
-            <button @click="confirmQuit">不保存</button>
-        </div>
+        <el-dialog title="是否保存实验" :visible.sync="showModal" width="40%" center>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="confirmSave"> 保存 </el-button>
+                <el-button @click="confirmQuit"> 不保存 </el-button>
+            </div>
+        </el-dialog>
     </div>
     <div class="detail-container" v-else>
         LOADING
-        <div v-if="showModal">
-            <p>你要保存实验吗?</p>
-            <button @click="confirmSave">保存</button>
-            <button @click="confirmQuit">不保存</button>
-        </div>
+        <el-dialog title="你确定要退出吗" :visible.sync="showModal" width="40%" center>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="confirmSave"> 保存 </el-button>
+                <el-button @click="confirmQuit"> 不保存 </el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -48,10 +50,12 @@ export default{
         getData(){
             this.loading = true
             let course_id = this.$route.query.course_id
+            let config = this.$route.query.config
             let user_id = localStorage.getItem('user_id')
             let formData = new FormData()
             formData.append('course_id', course_id)
             formData.append('user_id', user_id)
+            formData.append('config', config)
             this.$axios({
                 method: 'post',
                 url: '/teacher/create_experiment/',
@@ -60,9 +64,10 @@ export default{
                 res => {
                     console.log(res)
                     this.experiment_info = res.data.data
-                    // this.url = res.data.data.experiment_url
-                    this.url = 'http://39.105.203.95:8888/lab?token=123456789'
+                    this.url = res.data.data.experiment_url
+                    // this.url = 'http://39.105.203.95:8888/lab?token=123456789'
                     this.time = res.data.data.experiment_countdown
+                    this.startCountdown()
                     this.loading = false
                 }
             )
@@ -141,14 +146,6 @@ export default{
                 }
             }, 1000);
         },
-        beforeunload(event) {
-            event.preventDefault();
-            event.returnValue = '';
-        },
-        handleWindowUnload() {
-            window.alert("are you sure to quit")
-            this.confirmSave()
-        },
     },
     computed: {
         formattedTime() {
@@ -161,17 +158,6 @@ export default{
     },
     async created(){
         this.getData();
-        window.addEventListener('beforeunload', this.beforeUnload);
-        this.startCountdown();
-    },
-    destroyed(){
-        window.removeEventListener('beforeunload', this.beforeUnload);
-    },
-    mounted() {
-        window.addEventListener('beforeunload', this.beforeUnload);
-    },
-    beforeDestroy() {
-        window.removeEventListener('beforeunload', this.beforeUnload);
     },
 }
 </script>

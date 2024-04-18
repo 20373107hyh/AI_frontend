@@ -17,8 +17,18 @@
       <el-form-item label="实验限时">
         <el-input-number v-model="form.course_limit_time" :min="1" :max="100"></el-input-number> 小时
       </el-form-item>
-      <el-form-item label="实验章节">
+      <!-- <el-form-item label="实验章节">
         第<el-input-number v-model="form.course_chapter" :min="1" :max="7"></el-input-number>章
+      </el-form-item> -->
+      <el-form-item label="章节">
+        <el-select v-model="form.course_chapter" placeholder="请选择" style="width: 300px; margin-left: 20px">
+            <el-option
+              v-for="item in chapter_list"
+              :key="item.chapter_num"
+              :label="item.chapter_name"
+              :value="item.chapter_num">
+            </el-option>
+          </el-select>
       </el-form-item>
       <el-form-item label="难度">
         <el-radio-group v-model="form.course_difficulty">
@@ -54,7 +64,8 @@ export default {
         course_intro: '',
         course_aim: '',
       },
-      list:[]
+      list:[],
+      chapter_list:[],
     }
   },
   methods: {
@@ -92,6 +103,15 @@ export default {
         }).then(
           res => {
             this.list = res.data.data
+            this.listLoading = false
+          }
+        )
+        this.$axios({
+          method: 'post',
+          url: '/teacher/list_chapter/',
+        }).then(
+          res => {
+            this.chapter_list = res.data.data
             this.listLoading = false
           }
         )

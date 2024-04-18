@@ -95,13 +95,21 @@ export const teacherRoutes = [
   {
     path: '/form',
     component: Layout,
+    meta: { title: '编辑', icon: 'form'},
     children: [
       {
+        path: 'chapter_add',
+        name: '章节添加',
+        component: () => import('@/views/form/chapter_add'),
+        meta: { title: '章节添加', icon: 'form' }
+      },
+      {
         path: 'course_add',
-        name: 'Form',
-        component: () => import('@/views/form/index'),
+        name: '课程添加',
+        component: () => import('@/views/form/course_add'),
         meta: { title: '课程添加', icon: 'form' }
-      }
+      },
+
     ]
   },
 
