@@ -87,7 +87,7 @@
       fit
       highlight-current-row
     >
-      <el-table-column align="center" label="ID" width="95">
+      <el-table-column align="center" label="ID" width="160">
         <template slot-scope="scope">
           {{ scope.row.id }}
         </template>

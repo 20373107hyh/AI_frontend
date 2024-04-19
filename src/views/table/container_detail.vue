@@ -10,6 +10,7 @@
     </div>
     <form @submit.prevent="onSubmit">
       <input type="file" multiple @change="onFileChange">
+      <input type="file" webkitdirectory directory multiple @change="onFileChange">
       <el-input placeholder="请输入路径，注意路径不以/结尾，文件夹名不以.开头" v-model="path">
         <template slot="prepend"> {{ container_info.workdir }}/ </template>
       </el-input>
