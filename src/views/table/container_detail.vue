@@ -8,62 +8,71 @@
       <div class="detail-text">SSH命令: ssh root@127.0.0.1 -p {{ container_info.ssh_port }}</div>
       <div class="detail-text">SSH密码: {{ container_info.ssh_password }}</div>
     </div>
-    <form @submit.prevent="onSubmit">
-      <input type="file" multiple @change="onFileChange">
-      <input type="file" webkitdirectory directory multiple @change="onFileChange">
-      <el-input placeholder="请输入路径，注意路径不以/结尾，文件夹名不以.开头" v-model="path">
-        <template slot="prepend"> {{ container_info.workdir }}/ </template>
-      </el-input>
-      <button type="submit">Submit</button>
-    </form>
+    <div>
+      选择文件：<input type="file" ref="singleFile" multiple @change="handleSingleFileUpload"/>
+      <el-button v-on:click="submitSingleFile()" :disabled="listLoading" >上传文件</el-button>
+      选择文件夹：<input type="file" ref="folderFiles" multiple webkitdirectory @change="handleFileUpload"/>
+            <el-button v-on:click="submitFile()" :disabled="listLoading" >上传文件夹</el-button>
+        <el-input placeholder="请输入路径，注意路径不以/结尾，文件夹名不以.开头" v-model="path">
+          <template slot="prepend"> {{ container_info.workdir }}/ </template>
+        </el-input>
+    </div>
     <!-- <ul v-if="uploaded_files.length > 0">
       <li v-for="(file, index) in uploaded_files" :key="index">
         {{ file.filename }} &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;  {{ file.path }}  
         <button @click="onDelete(file.path)">Delete</button>
       </li>
     </ul> -->
-    <el-table 
-      :data="uploaded_files" 
-      v-loading="listLoading"
-      @selection-change="handleSelectionChange">
-      <el-table-column
-        type="selection"
-        :selectable="isSelectable"
-        width="55">
-      </el-table-column>
-      <el-table-column 
-        prop="name" 
-        label="文件名">
-        <template slot-scope="scope">
-          {{ scope.row.filename}}
-        </template>
-      </el-table-column>
-      <el-table-column 
-        prop="path" 
-        label="文件路径">
-        <template slot-scope="scope">
-          {{ scope.row.path}}
-        </template>
-      </el-table-column>
-      <el-table-column 
-        prop="operation" 
-        label="操作">
-        <template slot-scope="scope">
-          <el-button @click="onDelete([scope.row.path])">Delete</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-button @click="onDeleteSelectedFiles">删除所选</el-button>
-    <el-button type="primary" @click="handleEnter()"> 进入 </el-button>
-    <el-button type="primary" @click="handleReturn()"> 返回 </el-button>
+    <div>
+      <el-button @click="onDeleteSelectedFiles">删除所选</el-button>
+      <el-button type="primary" @click="handleEnter()"> 进入 </el-button>
+      <el-button type="primary" @click="handleReturn()"> 返回 </el-button>
+      <el-table 
+        :data="uploaded_files" 
+        v-loading="listLoading"
+        @selection-change="handleSelectionChange">
+        <el-table-column
+          type="selection"
+          :selectable="isSelectable"
+          width="55">
+        </el-table-column>
+        <el-table-column 
+          prop="name" 
+          label="文件名">
+          <template slot-scope="scope">
+            {{ scope.row.filename}}
+          </template>
+        </el-table-column>
+        <el-table-column 
+          prop="path" 
+          label="文件路径">
+          <template slot-scope="scope">
+            {{ scope.row.path}}
+          </template>
+        </el-table-column>
+        <el-table-column 
+          prop="operation" 
+          label="操作">
+          <template slot-scope="scope">
+            <el-button @click="onDelete([scope.row.path])">Delete</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
   
 <script>
+import tarStream from 'tar-stream';
+import tar from 'tar-js';
+import buffer from 'buffer/';
+import bl from 'bl';
 export default {
   data() {
     return {
-      files: [], //正在上传的文件
+      singleFile: [], //files uploading
+      folderFiles: [],
+      tarData: null,
       selectedFiles: [],
       uploaded_files:[], //已上传的文件
       container_info: {},
@@ -77,7 +86,6 @@ export default {
     },
     loadFiles(name){
       this.listLoading = true
-      console.log(name)
       const formData = new FormData()
       let user_id = localStorage.getItem('user_id')
       formData.append('user_id', user_id)
@@ -93,41 +101,127 @@ export default {
       })
       this.files = []
     },
-    onFileChange(e) {
-      this.files = [...e.target.files];
-      console.log(this.files)
+    handleFileUpload() {
+      this.listLoading = true
+      let filesArray = Array.from(this.$refs.folderFiles.files);
+      let filePromises = filesArray.map(file => {
+        return new Promise((resolve, reject) => {
+            let reader = new FileReader();
+            reader.onload = () => {
+            resolve({ name: file.webkitRelativePath, data: reader.result });
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+        });
+
+      Promise.all(filePromises).then(fileDataArray => {
+        let pack = tarStream.pack();
+
+        for(let fileData of fileDataArray) {
+            pack.entry({ name: fileData.name }, new Buffer(fileData.data));
+        }
+
+        pack.finalize();
+        pack.pipe(bl((err, data) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            let blob = new Blob([data], { type: "application/x-tar" });
+            let reader = new FileReader();
+            reader.onloadend = () => {
+              this.tarData = reader.result;
+              // 在这里加入日志
+            };
+            reader.readAsArrayBuffer(blob);
+            this.listLoading = false
+          }));
+        }).catch(error => {
+          console.error(error);
+        });
+    },
+    handleSingleFileUpload() {
+        let filesArray = Array.from(this.$refs.singleFile.files);
+        this.tarData = []; // Ensure it's set to array before usage
+        let filePromises = filesArray.map(file => {
+            return new Promise((resolve, reject) => {
+                let reader = new FileReader();
+                reader.onload = () => {
+                    this.tarData.push({name: file.name, data: reader.result}); 
+                    resolve();
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        });
+
+        Promise.all(filePromises).then(() => {
+            console.log("All files have been read.");
+        }).catch(error => {
+            console.error(error);
+        });
     },
     isSelectable(file) {
       // 这个函数决定哪些文件可以被选中
       // 不写代表允许所有文件被选中
       return true;
     },
-    onSubmit() {
-      const formData = new FormData();
-      let user_id = localStorage.getItem('user_id')
-      let container_name = this.container_info.container_name
-      formData.append('user_id', user_id)
-      formData.append('container_name', container_name)
-      formData.append('path', this.path)
-      for (let i = 0; i < this.files.length; i++) {
-        let file = this.files[i];
-        formData.append('file[]', file);
-        formData.append('path[]', file.webkitRelativePath || file.name); // 添加文件的相对路径
-      }
-      this.$axios({
+    submitFile(){
+        let formData = new FormData();
+        let user_id = localStorage.getItem('user_id')
+        let container_name = this.container_info.container_name
+        let blob = new Blob([this.tarData], {type: "application/x-tar"}); 
+        formData.append('tarFile', blob);
+        formData.append('user_id', user_id);
+        formData.append('container_name', container_name);
+        formData.append('path', this.path);
+        
+        this.$axios({
           method: 'post',
           url: '/teacher/upload_file/',
           data: formData,
           headers: {
             'Content-Type': 'multipart/form-data'
           }
-        }).then(response => {
-          console.log(response)
-          this.loadFiles(container_name)
-          this.files = []
         })
-          .catch(error => console.log(error));
+        .then(response => {
+          console.log(response);
+          this.loadFiles(container_name);
+          this.files = [];
+          this.listLoading = false;
+        })
+        .catch(error => console.log(error));
+    },
 
+    submitSingleFile(){
+        let formData = new FormData();
+        let user_id = localStorage.getItem('user_id')
+        let container_name = this.container_info.container_name
+        for(let fileData of this.tarData) {
+            let blob = new Blob([fileData], {type: "application/octet-stream"});  
+            formData.append('files[]', blob, fileData.name);  
+        }
+        formData.append('user_id', user_id);
+        formData.append('container_name', container_name);
+        formData.append('path', this.path);
+
+        this.$axios({
+            method: 'post',
+            url: '/teacher/upload_file/',
+            data: formData,
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        .then(response => {
+          console.log(response);
+          this.loadFiles(container_name);
+          this.tarData = []; // Reset the tarData for next usage
+          this.listLoading = false;
+        })
+        .catch(error => console.log(error));
     },
     onDelete(path){
       console.log(path)
