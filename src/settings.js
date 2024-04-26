@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: 'Vue Admin Template',
+  title: '人工智能教学实践平台',
 
   /**
    * @type {boolean} true | false

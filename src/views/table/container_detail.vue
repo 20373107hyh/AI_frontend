@@ -30,7 +30,9 @@
       <el-table 
         :data="uploaded_files" 
         v-loading="listLoading"
-        @selection-change="handleSelectionChange">
+        @selection-change="handleSelectionChange"
+        style="width: 100%"
+        :height="800">
         <el-table-column
           type="selection"
           :selectable="isSelectable"

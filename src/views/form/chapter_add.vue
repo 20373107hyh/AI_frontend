@@ -10,7 +10,10 @@
         <el-form-item label="章节名称" prop="com">
           <el-input v-model="form.chapter_name" clearable style="width: 300px; margin-left: 20px"/>
         </el-form-item>
-        注意：若章节序号和已有的重复，则会修改章节的名称
+        <el-form-item label="章节简介">
+          <el-input v-model="form.chapter_intro" :rows="8" type="textarea" style="width:300px; margin-left: 20px"/>
+        </el-form-item>
+        注意：若章节序号和已有的重复，则会修改章节的名称和简介
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addDialogVisible = false"> 取消 </el-button>
@@ -38,6 +41,11 @@
           {{ scope.row.chapter_name }}
         </template>
       </el-table-column>
+      <el-table-column label="章节简介">
+        <template slot-scope="scope">
+          {{ scope.row.chapter_intro }}
+        </template>
+      </el-table-column>
       <el-table-column align="center" prop="created_at" label="操作" width="200">
         <template slot-scope="scope">
           <span>
@@ -55,7 +63,8 @@ export default {
     return {
       form: {
         chapter_num: 1,
-        chapter_name: ''
+        chapter_name: '',
+        chapter_intro: '',
       },
       list:[],
       addDialogVisible: false,
@@ -70,6 +79,7 @@ export default {
       const formData = new FormData()
       formData.append('chapter_num', this.form.chapter_num)
       formData.append('chapter_name', this.form.chapter_name)
+      formData.append('chapter_intro', this.form.chapter_intro)
       this.$axios({
           method: 'post',
           url: '/teacher/add_chapter/',

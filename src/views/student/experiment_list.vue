@@ -1,6 +1,37 @@
 <template>
     <div class="app-container">
-      <el-table
+      <div class="bgtop">
+        <div style="position: absolute; top: 170px; left: 0; font-size: 54px; color: #fff; font-weight: 400; width: 700px; margin: 0 auto; right: 0; text-align: center; ">人工智能实验平台</div>
+      </div>
+      <el-collapse v-model="activeNames">
+        <el-collapse-item 
+          v-for="(chapter, index) in chapter_list" 
+          :key="index" 
+          :name="index.toString()"
+          >
+          <template slot="title">
+            第 {{ chapter.chapter_num }} 章 {{ chapter.chapter_name }}
+          </template>
+          <div class="experiment-intro">
+            <div class="introduction">
+              <h3>
+                章节介绍 
+              </h3>
+              <p> {{ chapter.chapter_intro }} </p>
+            </div>
+          </div>
+          <div class="experiment-box">
+            <div v-for="(course, key) in course_list[index]" :key="key" @click="handleEnter(course)">
+              <el-card class="box-card">
+                <span class="icon">实验</span>
+                <span class="hep-title">{{course.course_intro}}</span>
+                <span class="time">{{ course.course_limit_time }}小时</span>
+              </el-card>
+            </div>
+          </div>
+        </el-collapse-item>
+    </el-collapse>
+      <!-- <el-table
         v-loading="listLoading"
         :data="course_list"
         element-loading-text="Loading"
@@ -37,11 +68,10 @@
         <template slot-scope="scope">
           <span>
             <el-button type="primary" @click="handleEnter(scope.row)"> 进入实验 </el-button>
-            <!-- <el-button type="primary" @click="handleDelete(scope.row.course_id)"> 删除 </el-button> -->
           </span>
         </template>
       </el-table-column>
-      </el-table>
+      </el-table> -->
     </div>
   </template>
   
@@ -62,17 +92,21 @@
     data() {
       return {
         course_list: null,
-        listLoading: false
+        listLoading: false,
+        chapter_list: null,
+        activeNames: [],
+
       }
     },
     created() {
       this.fetchData()
+      this.listChapter()
     },
     methods: {
       fetchData() {
         this.$axios({
           method: 'post',
-          url: '/student/get_course_list/',
+          url: '/student/list_course_by_chapter/',
         }).then(
           res => {
             console.log(res)
@@ -84,12 +118,118 @@
       handleEnter(row){
             console.log(row)
             this.$router.push({
-                path:'/experiment_list/experiment_detail',
+                path:'/experiment_detail',
                 query:{
                     course_id: row.course_id,
                 }
             })
-        },
+      },
+      listChapter() {
+        this.$axios({
+            method: 'post',
+            url: '/teacher/list_chapter/',
+          }).then(
+            res => {
+              this.chapter_list = res.data.data
+            }
+          )
+        // getList().then(response => {
+        //   this.list = response.data.items
+        //   this.listLoading = false
+        // })
+      },
     }
   }
   </script>
+
+<style scoped>
+.bgtop{
+  position: relative;
+  height: 400px;
+  padding: 0;
+  background: url("~@/assets/hep-header-bg.png");;
+}
+
+.el-collapse-item__wrap, .el-collapse-item__content {
+  background-color: lightblue !important; 
+}
+
+.experiment-intro{
+  border: 1px solid #B0D4FF;
+  margin: 20px 40px 0;
+  padding: 20px;
+  color: #888A91;
+  font-size: 16px;
+
+}
+
+.experiment-intro .introduction{
+  display: flex;
+
+}
+.experiment-box{
+  display: flex;
+  margin: 20px;
+}
+
+h3::after {
+    content: "";
+    display: inline-block;
+    width:80px;
+    height: 7px;
+    background: #5282f7;
+    position: relative;
+    left: -81px;
+    opacity: .3;
+    top: 5px;
+}
+
+span.icon {
+    display: inline-block;
+    color: #3964FF;
+    width: 44px;
+    height: 20px;
+    border: 1px solid #3964FF;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 2px;
+    margin-top: 20px;
+}
+
+p{
+  flex: 1;
+}
+
+.hep-title {
+    color: #333;
+    font-size: 18px !important;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin-top: 10px;
+    margin-bottom: 25px;
+    min-height: 68px;
+}
+
+.text {
+    font-size: 14px;
+  }
+
+  .item {
+    padding: 18px 0;
+  }
+
+  .box-card {
+    width: 360px;
+    background: #fff;
+    margin-top: 20px;
+    height: 200px;
+    display: flex;
+    cursor: pointer;
+  }
+
+  span.time{
+    font-size: 16px !important;
+  }
+</style>

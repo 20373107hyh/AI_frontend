@@ -131,22 +131,10 @@ export const studentRoutes = [
     component: () => import('@/views/404'),
     hidden: true
   },
-
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard',
-    children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
-    }]
-  },
-  {
-    path: '/experiment_list',
-    component: Layout,
-    redirect: '/experiment_list/experiment_list',
+    redirect: '/experiment_list',
     name: '实验列表',
     meta: { title: '实验列表', icon: 'form' },
     children: [
@@ -162,6 +150,17 @@ export const studentRoutes = [
         component: () => import('@/views/student/experiment_detail'),
       }
     ]
+  },
+  {
+    path: '/dashboard',
+    component: Layout,
+    redirect: '/dashboard/dashboard',
+    children: [{
+      path: 'dashboard',
+      name: 'Dashboard',
+      component: () => import('@/views/dashboard/index'),
+      meta: { title: 'Dashboard', icon: 'dashboard' }
+    }]
   },
   
 
