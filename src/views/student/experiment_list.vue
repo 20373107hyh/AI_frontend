@@ -10,7 +10,13 @@
           :name="index.toString()"
           >
           <template slot="title">
-            第 {{ chapter.chapter_num }} 章 {{ chapter.chapter_name }}
+            <div class="title" style="  line-height: 70px;
+                                          height: 70px;
+                                          font-size: 22px !important;
+                                          background: #D5E8FF;
+                                          padding-left: 40px;">
+                                            第 {{ chapter.chapter_num }} 章 {{ chapter.chapter_name }}
+                                          </div>
           </template>
           <div class="experiment-intro">
             <div class="introduction">
@@ -23,9 +29,14 @@
           <div class="experiment-box">
             <div v-for="(course, key) in course_list[index]" :key="key" @click="handleEnter(course)">
               <el-card class="box-card">
-                <span class="icon">实验</span>
-                <span class="hep-title">{{course.course_intro}}</span>
-                <span class="time">{{ course.course_limit_time }}小时</span>
+                <div class="left" style="width:120px">
+                  <img src="~@/assets/hep2.png" style="width:112px; height: 145px;">
+                </div>
+                <div class="right" style="width: 220px; position: relative; top:-170px; left:125px">
+                  <span class="icon">实验</span>
+                  <span class="hep-title">{{course.course_name}}</span>
+                  <span class="time">{{ course.course_limit_time }}小时</span>
+                </div>
               </el-card>
             </div>
           </div>
@@ -95,7 +106,6 @@
         listLoading: false,
         chapter_list: null,
         activeNames: [],
-
       }
     },
     created() {
@@ -138,7 +148,16 @@
         //   this.listLoading = false
         // })
       },
-    }
+    },
+    computed: {
+        formattedTime() {
+        const hours = Math.floor(this.time / 3600);
+        const minutes = Math.floor((this.time % 3600) / 60);
+        const seconds = this.time % 60;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        },
+    },
   }
   </script>
 
@@ -150,8 +169,8 @@
   background: url("~@/assets/hep-header-bg.png");;
 }
 
-.el-collapse-item__wrap, .el-collapse-item__content {
-  background-color: lightblue !important; 
+.el-collapse {
+    background-color: #D5E8FF !important;
 }
 
 .experiment-intro{
@@ -160,13 +179,18 @@
   padding: 20px;
   color: #888A91;
   font-size: 16px;
-
 }
+
 
 .experiment-intro .introduction{
   display: flex;
 
 }
+
+.el-collapse-item__wrap {
+    background-color: #D5E8FF !important;
+}
+
 .experiment-box{
   display: flex;
   margin: 20px;
@@ -228,8 +252,30 @@ p{
     display: flex;
     cursor: pointer;
   }
-
   span.time{
     font-size: 16px !important;
   }
+
+   /deep/.el-collapse {
+      background-color: #D5E8FF !important;
+    }
+    /deep/.el-collapse,.el-collapse-item__wrap {
+      border: 20px solid white;
+      width: 1500px;
+      position: relative;
+      left:125px;
+    }
+    /deep/ .el-collapse-item__header {
+        color: black;
+        background-color: #D5E8FF !important;
+        height: 80px;
+    }
+    /deep/ .el-collapse-item__content {
+        color: black;
+        background-color: #e1edfd !important;
+        position: relative;
+        top:-20px;
+    }
+
+
 </style>

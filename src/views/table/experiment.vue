@@ -50,12 +50,10 @@ export default{
         getData(){
             this.loading = true
             let course_id = this.$route.query.course_id
-            let config = this.$route.query.config
             let user_id = localStorage.getItem('user_id')
             let formData = new FormData()
             formData.append('course_id', course_id)
             formData.append('user_id', user_id)
-            formData.append('config', config)
             this.$axios({
                 method: 'post',
                 url: '/teacher/create_experiment/',

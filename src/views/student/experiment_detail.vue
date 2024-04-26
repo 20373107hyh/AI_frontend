@@ -1,14 +1,23 @@
 <template>
     <div class="detail-container">
         <el-button @click="ReturnToCourseInfo()">返回 </el-button>
-      <div class="detail-text">课程名称：{{ course_info.course_name }}</div>
-      <div class="detail-text">课程难度：{{ course_info.course_difficulty }}</div>
-      <div class="detail-text">课程章节：第{{ course_info.course_chapter }}章 {{course_info.chapter_name }}</div>
-      <div class="detail-text">课程限时：{{ course_info.course_limit_time }}小时</div>
-      <div class="detail-text">课程简介：{{ course_info.course_intro }}</div>
-      <div class="detail-text">课程目标：{{ course_info.course_aim }}</div>
-      <div class="detail-text"><el-button @click="StartExperiment()">开始实验 </el-button><el-button @click="uploadExpVisible()">上传实验文件 </el-button></div>
-            <el-table 
+      <div class="detail-text">实验名称：<div style="width:80%">{{ course_info.course_name }}</div></div>
+      <div class="detail-text">实验难度：<div style="width:80%">{{ course_info.course_difficulty }}</div></div>
+      <div class="detail-text">实验章节：<div style="width:80%">第{{ course_info.course_chapter }}章 {{course_info.chapter_name }}</div></div>
+      <div class="detail-text">实验限时：<div style="width:80%">{{ course_info.course_limit_time }}小时</div></div>
+      <div class="detail-text">实验简介：<div style="width:80%">{{ course_info.course_intro }}</div></div>
+      <div class="detail-text">实验目标：<div style="width:80%">{{ course_info.course_aim }}</div></div>
+      <div class="detail-text">
+        <el-button @click="StartExperiment()" v-if="status==='uncreated'" type="primary">开始实验 </el-button>
+        <el-button @click="StartExperiment()" v-if="status==='running'" type="primary">进入实验 </el-button>
+        <el-button @click="DeleteExperiment()" v-if="status==='running'" type="danger">结束实验</el-button>
+        <el-button @click="uploadExpVisible()" type="primary">上传实验文件 </el-button>
+        <div class="timer"  v-if="status==='running'">
+            实验剩余时间：{{ formattedTime }}
+        </div>
+        实验得分： {{ course_info.score }}
+      </div>
+      <el-table 
                 :data="files_uploaded_to_teacher" 
                 v-loading="uplistLoading"
                 @selection-change="handleExpFileSelectionChange"
@@ -30,8 +39,8 @@
                 prop="name" 
                 label="操作">
                 <template slot-scope="scope">
-                    <el-button @click="downloadFile(scope.row)">下载文件</el-button>
-                    <el-button @click="deleteFile(scope.row)">删除文件</el-button>
+                    <el-button @click="downloadFile(scope.row)" type="primary">下载文件</el-button>
+                    <el-button @click="deleteFile(scope.row)" type="danger">删除文件</el-button>
                 </template>
                 </el-table-column>
             </el-table>
@@ -105,23 +114,32 @@ export default{
             users_have_uploaded: [],
             user_files: [],
             userfileDialogVisible: false,
+            timer: null,
+            time: 0,
+            status: '',
         }
     },
     methods:{
         getData(){
             let course_id = this.$route.query.course_id
+            let user_id = localStorage.getItem('user_id')
             let formData = new FormData()
             formData.append('course_id', course_id)
+            formData.append('user_id', user_id)
             this.$axios({
                 method: 'post',
-                url: '/teacher/get_course_info/',
+                url: '/student/get_course/',
                 data: formData,
             }).then(
                 res => {
                     console.log(res)
                     this.course_info = res.data.data
                     console.log(res.data.data.course_limit_time)
-                    this.time = res.data.data.course_limit_time * 3600
+                    this.status = res.data.data.experiment_status
+                    this.time = res.data.data.experiment_countdown
+                    if(res.data.data.experiment_status === 'running'){
+                        this.startCountdown()
+                    }
                 }
             )
         },
@@ -133,8 +151,58 @@ export default{
         },
         StartExperiment(){
             let course_id = this.course_info.course_id
-            let config = this.config
-            window.open(this.$router.resolve({ path: '/experiment', query:{ course_id:course_id } }).href, '_blank');
+            let user_id = localStorage.getItem('user_id')
+            let formData = new FormData()
+            formData.append('course_id', course_id)
+            formData.append('user_id', user_id)
+            var loadingInstance = this.$loading({
+                lock: true,
+                text: '实验环境正在创建中，请稍后',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
+            this.$axios({
+                method: 'post',
+                url: '/teacher/create_experiment/',
+                data: formData,
+            }).then(
+                res => {
+                    loadingInstance.close()
+                    window.open(res.data.data.experiment_url, '_blank');
+                    this.$router.push({
+                        path:'/experiment_detail',
+                        query:{
+                            course_id: course_id,
+                        }
+                    })
+                    location.reload()
+                }
+            )
+            // window.open(this.$router.resolve({ path: '/experiment', query:{ course_id:course_id } }).href, '_blank');
+        },
+        DeleteExperiment(){
+            let course_id = this.course_info.course_id
+            let user_id = localStorage.getItem('user_id')
+            let formData = new FormData()
+            formData.append('course_id', course_id)
+            formData.append('user_id', user_id)
+            var loadingInstance = this.$loading({
+                lock: true,
+                text: '删除实验中，请稍后',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
+            this.$axios({
+                method: 'post',
+                url: '/teacher/delete_experiment_by_course_user/',
+                data: formData,
+            }).then(
+                res => {
+                    console.log(res)
+                    loadingInstance.close()
+                    location.reload()
+                }
+            )
         },
         loadExpFiles(){
             this.listLoading = true
@@ -292,10 +360,30 @@ export default{
                 console.error(error);
             });
         },
+        startCountdown() {
+            this.timer = setInterval(() => {
+                if (this.time > 0) {
+                this.time--;
+                } else {
+                this.time = 0;
+                clearInterval(this.timer);
+                }
+            }, 1000);
+        },
+        
     },
     async created(){
         this.getData()
         this.loadUploadedExpFiles()
+    },
+    computed: {
+        formattedTime() {
+        const hours = Math.floor(this.time / 3600);
+        const minutes = Math.floor((this.time % 3600) / 60);
+        const seconds = this.time % 60;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        },
     },
 }
 </script>
@@ -308,8 +396,11 @@ export default{
     margin: 30px;
   }
   &-text {
-    font-size: 30px;
+    margin: 20px;
+    font-size: 24px;
     line-height: 46px;
+    white-space: pre-wrap;
+    display:flex;
   }
 }
 </style>

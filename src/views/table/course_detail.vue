@@ -1,13 +1,22 @@
 <template>
     <div class="detail-container">
         <el-button @click="ReturnToCourseInfo()">返回 </el-button>
-      <div class="detail-text">课程名称：{{ course_info.course_name }}</div>
-      <div class="detail-text">课程难度：{{ course_info.course_difficulty }}</div>
-      <div class="detail-text">课程章节：第{{ course_info.course_chapter }}章 {{course_info.chapter_name }}</div>
-      <div class="detail-text">课程限时：{{ course_info.course_limit_time }}小时</div>
-      <div class="detail-text">课程简介：{{ course_info.course_intro }}</div>
-      <div class="detail-text">课程目标：{{ course_info.course_aim }}</div>
-      <div class="detail-text"><el-button @click="StartExperiment()">开始实验 </el-button><el-button @click="uploadExpVisible()">上传实验文件 </el-button></div>
+      <div class="detail-text">课程名称：<div style="width:80%">{{ course_info.course_name }}</div></div>
+      <div class="detail-text">课程难度：<div style="width:80%">{{ course_info.course_difficulty }}</div></div>
+      <div class="detail-text">课程章节：<div style="width:80%">第{{ course_info.course_chapter }}章 {{course_info.chapter_name }}</div></div>
+      <div class="detail-text">课程限时：<div style="width:80%">{{ course_info.course_limit_time }}小时</div></div>
+      <div class="detail-text">课程简介：<div style="width:80%">{{ course_info.course_intro }}</div></div>
+      <div class="detail-text">课程目标：<div style="width:80%">{{ course_info.course_aim }}</div></div>
+      <div class="detail-text">
+        <el-button @click="StartExperiment()" v-if="status==='uncreated'" type="primary">开始实验 </el-button>
+        <el-button @click="StartExperiment()" v-if="status==='running'" type="primary">进入实验 </el-button>
+        <el-button @click="DeleteExperiment()" v-if="status==='running'" type="danger">结束实验</el-button>
+        <el-button @click="uploadExpVisible()" type="primary">上传实验文件 </el-button>
+        <div class="timer"  v-if="status==='running'">
+            实验剩余时间：{{ formattedTime }}
+        </div>
+        实验得分： {{ course_info.score }}
+      </div>
             <el-table 
                 :data="files_uploaded_to_teacher" 
                 v-loading="uplistLoading"
@@ -30,12 +39,12 @@
                 prop="name" 
                 label="操作">
                 <template slot-scope="scope">
-                    <el-button @click="downloadFile(scope.row)">下载文件</el-button>
-                    <el-button @click="deleteFile(scope.row)">删除文件</el-button>
+                    <el-button @click="downloadFile(scope.row)" type="primary">下载文件</el-button>
+                    <el-button @click="deleteFile(scope.row)" type="danger">删除文件</el-button>
                 </template>
                 </el-table-column>
             </el-table>
-
+            <h3>学生已上传实验文件：</h3>
             <el-table 
                 :data="users_have_uploaded" 
                 v-loading="userlistLoading"
@@ -45,14 +54,21 @@
                 prop="name" 
                 label="用户ID">
                 <template slot-scope="scope">
-                    {{ scope.row[0]}}
+                    {{ scope.row.user_id}}
                 </template>
                 </el-table-column>
                 <el-table-column 
                 prop="name" 
                 label="用户名">
                 <template slot-scope="scope">
-                    {{ scope.row[1]}}
+                    {{ scope.row.realname}}
+                </template>
+                </el-table-column>
+                <el-table-column 
+                prop="name" 
+                label="分数">
+                <template slot-scope="scope">
+                    {{ scope.row.score}}
                 </template>
                 </el-table-column>
                 <el-table-column 
@@ -60,6 +76,7 @@
                 label="操作">
                 <template slot-scope="scope">
                     <el-button @click="viewFile(scope.row)">查看</el-button>
+                    <el-button @click="rate(scope.row)"  type="primary">评分</el-button>
                 </template>
                 </el-table-column>
             </el-table>
@@ -94,6 +111,19 @@
         <div slot="footer" class="dialog-footer">
             <el-button @click="uploadDialogVisible = false"> 取消 </el-button>
             <el-button type="primary" @click="handleSubmit()"> 提交 </el-button>
+        </div>
+        </el-dialog>
+
+        <el-dialog title="评分" :visible.sync="rateDialogVisible" width="40%"center>
+            <el-form ref="dataForm" :model="form" label-position="left" label-width="100px" style="width: 400px; margin-left: 50px">
+                <el-form-item label="分数" prop="com">
+                    <el-input-number v-model="form.score" :min="0" :max="100"></el-input-number>
+                </el-form-item>
+            </el-form>
+
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="rateDialogVisible = false"> 取消 </el-button>
+            <el-button type="primary" @click="handleRate()"> 提交 </el-button>
         </div>
         </el-dialog>
 
@@ -157,13 +187,21 @@ export default{
             users_have_uploaded: [],
             user_files: [],
             userfileDialogVisible: false,
+            current_rate_student: '',
+            rateDialogVisible: false,
+            form: {
+                score: 0
+            },
+            status: ''
         }
     },
     methods:{
         getData(){
             let course_id = this.$route.query.course_id
             let formData = new FormData()
+            let user_id = localStorage.getItem('user_id')
             formData.append('course_id', course_id)
+            formData.append('user_id', user_id)
             this.$axios({
                 method: 'post',
                 url: '/teacher/get_course_info/',
@@ -173,7 +211,11 @@ export default{
                     console.log(res)
                     this.course_info = res.data.data
                     console.log(res.data.data.course_limit_time)
-                    this.time = res.data.data.course_limit_time * 3600
+                    this.time = res.data.data.experiment_countdown
+                    this.status = res.data.data.experiment_status
+                    if(res.data.data.experiment_status === 'running'){
+                        this.startCountdown()
+                    }
                 }
             )
         },
@@ -185,8 +227,55 @@ export default{
         },
         StartExperiment(){
             let course_id = this.course_info.course_id
-            let config = this.config
-            window.open(this.$router.resolve({ path: '/experiment', query:{ course_id:course_id } }).href, '_blank');
+            let user_id = localStorage.getItem('user_id')
+            let formData = new FormData()
+            formData.append('course_id', course_id)
+            formData.append('user_id', user_id)
+            var loadingInstance = this.$loading({
+                lock: true,
+                text: '实验环境正在创建中，请稍后',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
+            this.$axios({
+                method: 'post',
+                url: '/teacher/create_experiment/',
+                data: formData,
+            }).then(
+                res => {
+                    loadingInstance.close()
+                    console.log(
+                        res.data.data.experiment_url
+                    )
+                    location.reload()
+                    window.open(res.data.data.experiment_url, '_blank');
+                }
+            )
+            // window.open(this.$router.resolve({ path: '/experiment', query:{ course_id:course_id } }).href, '_blank');
+        },
+        DeleteExperiment(){
+            let course_id = this.course_info.course_id
+            let user_id = localStorage.getItem('user_id')
+            let formData = new FormData()
+            formData.append('course_id', course_id)
+            formData.append('user_id', user_id)
+            var loadingInstance = this.$loading({
+                lock: true,
+                text: '删除实验中，请稍后',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
+            this.$axios({
+                method: 'post',
+                url: '/teacher/delete_experiment_by_course_user/',
+                data: formData,
+            }).then(
+                res => {
+                    console.log(res)
+                    loadingInstance.close()
+                    location.reload()
+                }
+            )
         },
         loadExpFiles(){
             this.listLoading = true
@@ -242,7 +331,7 @@ export default{
             this.loadExpFiles()
         },
         viewFile(row){
-            let user_id = row[0]
+            let user_id = row.user_id
             this.userfileDialogVisible = true
             this.loadUserExpFile(user_id)
         },
@@ -325,7 +414,7 @@ export default{
             let user_id = localStorage.getItem('user_id')
             let course_id = this.$route.query.course_id
             console.log(filename)
-            let formData = new FormData();
+            const formData = new FormData();
             formData.append('user_id', user_id);
             formData.append('course_id', course_id);
             formData.append('filename', filename);
@@ -343,11 +432,59 @@ export default{
                 console.error(error);
             });
         },
+        rate(row){
+            this.current_rate_student = row.user_id
+            console.log(row.user_id)
+            this.rateDialogVisible = true
+        },
+        handleRate(){
+            let user_id = this.current_rate_student
+            let course_id = this.$route.query.course_id
+            let score = this.form.score
+            const formData = new FormData();
+            formData.append('user_id', user_id);
+            formData.append('course_id', course_id);
+            formData.append('score', score);
+            this.$axios({
+                method: 'post',
+                url: '/teacher/rate_experiment/', 
+                data: formData,
+            })
+            .then((response) => {
+                window.alert(response.data.msg)
+                this.loadUsers()
+                this.getData()
+                this.rateDialogVisible = false
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+        },
+        startCountdown() {
+            this.timer = setInterval(() => {
+                if (this.time > 0) {
+                this.time--;
+                } else {
+                this.time = 0;
+                clearInterval(this.timer);
+                }
+            }, 1000);
+        },
+
     },
     async created(){
         this.getData()
         this.loadUploadedExpFiles()
         this.loadUsers()
+    },
+    computed: {
+        formattedTime() {
+        const hours = Math.floor(this.time / 3600);
+        const minutes = Math.floor((this.time % 3600) / 60);
+        const seconds = this.time % 60;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        },
     },
 }
 </script>
@@ -362,6 +499,8 @@ export default{
   &-text {
     font-size: 30px;
     line-height: 46px;
+    white-space: pre-wrap;
+    display:flex;
   }
 }
 </style>
