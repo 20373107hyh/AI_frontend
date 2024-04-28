@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div>
+    <div style="margin: 20px;">
       <div class="detail-text">名称：{{ container_info.container_name}} </div>
       <div class="detail-text">配置：{{ container_info.cpu_num }}核CPU, {{ container_info.mem_size }}G内存 </div>
       <div class="detail-text">SSH端口: {{ container_info.ssh_port }}</div>
@@ -8,14 +8,20 @@
       <div class="detail-text">SSH命令: ssh root@127.0.0.1 -p {{ container_info.ssh_port }}</div>
       <div class="detail-text">SSH密码: {{ container_info.ssh_password }}</div>
     </div>
-    <div>
-      选择文件：<input type="file" ref="singleFile" multiple @change="handleSingleFileUpload"/>
-      <el-button v-on:click="submitSingleFile()" :disabled="listLoading" >上传文件</el-button>
-      选择文件夹：<input type="file" ref="folderFiles" multiple webkitdirectory @change="handleFileUpload"/>
-            <el-button v-on:click="submitFile()" :disabled="listLoading" >上传文件夹</el-button>
-        <el-input placeholder="请输入路径，注意路径不以/结尾，文件夹名不以.开头" v-model="path">
-          <template slot="prepend"> {{ container_info.workdir }}/ </template>
-        </el-input>
+    <div >
+      <h3 style="margin: 20px;">上传文件至镜像：</h3>
+      <div class="upload-box" style="margin: 20px;">
+        选择文件：<input type="file" ref="singleFile" multiple @change="handleSingleFileUpload" style="margin: 20px;"/>
+          <el-button v-on:click="submitSingleFile()" :disabled="listLoading" style="margin: 20px;" type="primary">上传文件</el-button>
+        选择文件夹：<input type="file" ref="folderFiles" multiple webkitdirectory @change="handleFileUpload" style="margin: 20px;"/>
+          <el-button v-on:click="submitFile()" :disabled="listLoading" style="margin: 20px;" type="primary">上传文件夹</el-button>
+          <div class="fileUpload">
+            指定文件上传路径：
+            <el-input placeholder="请输入路径，注意路径不以/结尾，文件夹名不以.开头" v-model="path" style="width: 70%;">
+              <template slot="prepend"> {{ container_info.workdir }}/ </template>
+            </el-input>
+          </div>
+      </div>
     </div>
     <!-- <ul v-if="uploaded_files.length > 0">
       <li v-for="(file, index) in uploaded_files" :key="index">
@@ -24,42 +30,45 @@
       </li>
     </ul> -->
     <div>
-      <el-button @click="onDeleteSelectedFiles">删除所选</el-button>
-      <el-button type="primary" @click="handleEnter()"> 进入 </el-button>
-      <el-button type="primary" @click="handleReturn()"> 返回 </el-button>
-      <el-table 
-        :data="uploaded_files" 
-        v-loading="listLoading"
-        @selection-change="handleSelectionChange"
-        style="width: 100%"
-        :height="800">
-        <el-table-column
-          type="selection"
-          :selectable="isSelectable"
-          width="55">
-        </el-table-column>
-        <el-table-column 
-          prop="name" 
-          label="文件名">
-          <template slot-scope="scope">
-            {{ scope.row.filename}}
-          </template>
-        </el-table-column>
-        <el-table-column 
-          prop="path" 
-          label="文件路径">
-          <template slot-scope="scope">
-            {{ scope.row.path}}
-          </template>
-        </el-table-column>
-        <el-table-column 
-          prop="operation" 
-          label="操作">
-          <template slot-scope="scope">
-            <el-button @click="onDelete([scope.row.path])">Delete</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <el-button type="primary" @click="handleEnter()" style="margin: 20px;"> 进入容器创建新文件/预载软件 </el-button>
+      <el-button type="primary" @click="handleReturn()" style="margin: 20px;"> 返回容器列表 </el-button>
+      <div style="margin: 20px;">
+        <h3 style="margin: 20px;">管理已上传文件</h3>
+        <el-table 
+          :data="uploaded_files" 
+          v-loading="listLoading"
+          @selection-change="handleSelectionChange"
+          style="width: 100%"
+          :height="400">
+          <el-table-column
+            type="selection"
+            :selectable="isSelectable"
+            width="55">
+          </el-table-column>
+          <el-table-column 
+            prop="name" 
+            label="文件名">
+            <template slot-scope="scope">
+              {{ scope.row.filename}}
+            </template>
+          </el-table-column>
+          <el-table-column 
+            prop="path" 
+            label="文件路径">
+            <template slot-scope="scope">
+              {{ scope.row.path}}
+            </template>
+          </el-table-column>
+          <el-table-column 
+            prop="operation" 
+            label="操作">
+            <template slot-scope="scope">
+              <el-button @click="onDelete([scope.row.path])" type="danger">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+         <el-button @click="onDeleteSelectedFiles" type="danger">删除所选文件</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -281,8 +290,10 @@ export default {
 <style lang="scss" scoped>
 .detail {
   &-text {
-    font-size: 30px;
+    font-size: 24px;
     line-height: 46px;
+    white-space: pre-wrap;
+    display:flex;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-button @click="CreateCourseOpen()"> 创建新课程 </el-button>
+    <el-button @click="CreateCourseOpen()" style="margin: 20px;" type="primary"> 创建新课程 </el-button>
 
     <el-table
       v-loading="listLoading"

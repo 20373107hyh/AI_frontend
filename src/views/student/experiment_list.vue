@@ -15,7 +15,7 @@
                                           font-size: 22px !important;
                                           background: #D5E8FF;
                                           padding-left: 40px;">
-                                            第 {{ chapter.chapter_num }} 章 {{ chapter.chapter_name }}
+                                            第 {{ chapter.chapter_num }} 章 &nbsp;&nbsp;&nbsp;{{ chapter.chapter_name }}
                                           </div>
           </template>
           <div class="experiment-intro">
@@ -263,7 +263,7 @@ p{
       border: 20px solid white;
       width: 1500px;
       position: relative;
-      left:125px;
+      left:6%;
     }
     /deep/ .el-collapse-item__header {
         color: black;

@@ -1,6 +1,6 @@
 <template>
     <div class="detail-container">
-        <el-button @click="ReturnToCourseInfo()">返回 </el-button>
+        <el-button @click="ReturnToCourseInfo()" type="primary">返回 </el-button>
       <div class="detail-text">课程名称：<div style="width:80%">{{ course_info.course_name }}</div></div>
       <div class="detail-text">课程难度：<div style="width:80%">{{ course_info.course_difficulty }}</div></div>
       <div class="detail-text">课程章节：<div style="width:80%">第{{ course_info.course_chapter }}章 {{course_info.chapter_name }}</div></div>

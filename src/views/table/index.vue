@@ -1,8 +1,10 @@
 <template>
   <div class="app-container">
-    <el-button @click="CreateDialogOpen()"> 创建新容器 </el-button>
-    <el-button @click="CommitDialogOpen()"> 构建新镜像 </el-button>
-    <el-button @click="DeleteImageDialogOpen()"> 删除镜像 </el-button>
+    <div class="buttons" style="margin: 20px;"> 
+      <el-button @click="CreateDialogOpen()" type="primary"> 创建新容器 </el-button>
+      <el-button @click="CommitDialogOpen()" type="primary"> 构建新镜像 </el-button>
+      <el-button @click="DeleteImageDialogOpen()" type="primary"> 删除镜像 </el-button>
+    </div>
 
     <el-dialog title="添加新容器" :visible.sync="addDialogVisible" width="40%" center>
       <el-form ref="dataForm" :model="temp" label-position="left" label-width="100px" style="width: 400px; margin-left: 50px">
